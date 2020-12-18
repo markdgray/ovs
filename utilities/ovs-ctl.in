@@ -230,10 +230,13 @@ start_forwarding () {
 }
 
 start_ovs_ipsec () {
+    [ "$LOCAL_IP" != "" ] && set -- "$@" --local-ip "$LOCAL_IP"
+
     ${datadir}/scripts/ovs-monitor-ipsec \
         --pidfile=${rundir}/ovs-monitor-ipsec.pid \
         --ike-daemon=$IKE_DAEMON \
-        --log-file --detach --monitor unix:${rundir}/db.sock || return 1
+        --log-file --detach --monitor unix:${rundir}/db.sock \
+        "$@" || return 1
     return 0
 }
 
@@ -341,6 +344,7 @@ set_defaults () {
     SPORT=
 
     IKE_DAEMON=
+    LOCAL_IP=
 
     type_file=$etcdir/system-type.conf
     version_file=$etcdir/system-version.conf
@@ -424,6 +428,9 @@ Options for "enable-protocol":
 Option for "start-ovs-ipsec":
   --ike-daemon=IKE_DAEMON
       the IKE daemon for ipsec tunnels (either libreswan or strongswan)
+  --local-ip=LOCAL_IP
+      the IP address used as left participant's IP address for libreswan
+      connections.
 
 Other options:
   -h, --help                  display this help message
