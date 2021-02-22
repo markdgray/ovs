@@ -76,7 +76,13 @@ $auth_section
     leftprotoport=udp
     rightprotoport=udp/4789
 
+"""), "ip6gre": Template("""\
+conn $ifname-$version
+$auth_section
+    leftprotoport=gre
+    rightprotoport=gre
 """)}
+
 vlog = ovs.vlog.Vlog("ovs-monitor-ipsec")
 exiting = False
 monitor = None
@@ -198,6 +204,10 @@ conn prevent_unencrypted_vxlan
     leftprotoport=udp/4789
     mark={0}
 
+conn prevent_unencrypted_ip6gre
+    type=drop
+    leftprotoport=gre
+    mark={0}
 """
 
     auth_tmpl = {"psk": Template("""\
@@ -413,6 +423,11 @@ conn prevent_unencrypted_vxlan
     leftprotoport=udp/4789
     mark={0}
 
+    conn prevent_unencrypted_ip6gre
+    type=drop
+    left=%defaultroute
+    leftprotoport=gre
+    mark={0}
 """
 
     auth_tmpl = {"psk": Template("""\
@@ -574,7 +589,8 @@ conn prevent_unencrypted_vxlan
         for name in tunnels:
             ver = monitor.tunnels[name].version
 
-            if monitor.tunnels[name].conf["tunnel_type"] == "gre":
+            if (monitor.tunnels[name].conf["tunnel_type"] == "gre" or
+                    monitor.tunnels[name].conf["tunnel_type"] == "ip6gre"):
                 conn = "%s-%s" % (name, ver)
                 self._start_ipsec_connection(conn)
             else:
@@ -594,6 +610,8 @@ conn prevent_unencrypted_vxlan
                             "--asynchronous", "prevent_unencrypted_stt"])
                 subprocess.call([self.IPSEC, "auto", "--add",
                             "--asynchronous", "prevent_unencrypted_vxlan"])
+                subprocess.call([self.IPSEC, "auto", "--add",
+                            "--asynchronous", "prevent_unencrypted_ip6gre"])
             else:
                 subprocess.call([self.IPSEC, "auto", "--delete",
                             "--asynchronous", "prevent_unencrypted_gre"])
@@ -603,6 +621,8 @@ conn prevent_unencrypted_vxlan
                             "--asynchronous", "prevent_unencrypted_stt"])
                 subprocess.call([self.IPSEC, "auto", "--delete",
                             "--asynchronous", "prevent_unencrypted_vxlan"])
+                subprocess.call([self.IPSEC, "auto", "--delete",
+                            "--asynchronous", "prevent_unencrypted_ip6gre"])
             monitor.conf_in_use["skb_mark"] = monitor.conf["skb_mark"]
 
     def get_active_conns(self):
@@ -962,7 +982,7 @@ class IPsecMonitor(object):
     def is_tunneling_type_supported(self, tunnel_type):
         """Returns True if we know how to configure IPsec for these
         types of tunnels.  Otherwise, returns False."""
-        return tunnel_type in ["gre", "geneve", "vxlan", "stt"]
+        return tunnel_type in ["gre", "geneve", "vxlan", "stt", "ip6gre"]
 
     def is_ipsec_required(self, options_column):
         """Return True if tunnel needs to be encrypted.  Otherwise,
