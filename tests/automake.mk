@@ -108,7 +108,8 @@ TESTSUITE_AT = \
 	tests/mcast-snooping.at \
 	tests/packet-type-aware.at \
 	tests/nsh.at \
-	tests/drop-stats.at
+	tests/drop-stats.at \
+	tests/ipsec.at
 
 EXTRA_DIST += $(FUZZ_REGRESSION_TESTS)
 FUZZ_REGRESSION_TESTS = \
@@ -200,7 +201,7 @@ SYSTEM_DPDK_TESTSUITE = $(srcdir)/tests/system-dpdk-testsuite
 OVSDB_CLUSTER_TESTSUITE = $(srcdir)/tests/ovsdb-cluster-testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal
 
-AUTOTEST_PATH = utilities:vswitchd:ovsdb:vtep:tests:$(PTHREAD_WIN32_DIR_DLL):$(SSL_DIR)
+AUTOTEST_PATH = utilities:vswitchd:ovsdb:vtep:tests:ipsec:$(PTHREAD_WIN32_DIR_DLL):$(SSL_DIR)
 
 check-local:
 	set $(SHELL) '$(TESTSUITE)' -C tests AUTOTEST_PATH=$(AUTOTEST_PATH); \
