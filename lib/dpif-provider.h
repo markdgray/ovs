@@ -357,6 +357,16 @@ struct dpif_class {
      * */
     int (*handlers_set)(struct dpif *dpif, uint32_t n_handlers);
 
+    /* Queries 'dpif' to see if a certain number of handlers are required by
+     * the implementation.
+     *
+     * If a certain number of handlers are required, returns 'true' and sets
+     * 'n_handlers' to that number of handler threads.
+     *
+     * If not, returns 'false'.
+     */
+    bool (*number_handlers_required)(struct dpif *dpif, uint32_t *n_handlers);
+
     /* Pass custom configuration options to the datapath.  The implementation
      * might postpone applying the changes until run() is called. */
     int (*set_config)(struct dpif *dpif, const struct smap *other_config);
